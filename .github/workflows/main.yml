@@ -13,6 +13,12 @@ on:
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 
+  # Environmental variables
+env:
+  docker_username: ${{ github.actor }}
+  docker_password: ${{ secrets.GITHUB_TOKEN }}
+  GIT_COMMIT: ${{ github.sha }}
+
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
   # This workflow contains a single job called "build"
@@ -36,26 +42,34 @@ jobs:
         run: |
           echo Add other actions to build,
           echo test, and deploy your project.
+      
+      - name: Test
+        run: chmod +x ci/unit-test-app.sh && ci/unit-test-app.sh
 
       - name: Upload a Build Artifact
         uses: actions/upload-artifact@v3
         with:
-          name: CODE
-          path: .
+          name: CompiledCode
+          path: app/build/libs/app-0.1-all.jar
   
-  Test:
+  Docker-image:
     runs-on: ubuntu-latest
-    container: gradle:6-jdk11
-
     needs: [Build]
+    permissions:
+      packages: write
     
     steps:
       # Downloads the artifact from the build step 
       - name: Download a single artifact
         uses: actions/download-artifact@v3
         with:
-          name: CODE
-          path: .
+          name: CompiledCode
+          path: app/build/libs/app-0.1-all.jar
+
+      - name: build docker
+        run: chmod +x ci/build-docker.sh && ci/build-docker.sh
         
-      - name: Test
-        run: chmod +x ci/unit-test-app.sh && ci/unit-test-app.sh
+      - name: push docker
+        run: chmod +x ci/push-docker.sh && ci/push-docker.sh
+        
+      
