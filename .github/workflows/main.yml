@@ -37,5 +37,23 @@ jobs:
           echo Add other actions to build,
           echo test, and deploy your project.
 
+      - name: Upload a Build Artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: CODE
+          path: .
+  
+  Test:
+    runs-on: ubuntu-latest
+    container: gradle:6-jdk11
+    
+    steps:
+      # Downloads the artifact from the build step 
+      - name: Download a single artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: CODE
+          path: .
+        
       - name: Test
         run: chmod +x ci/unit-test-app.sh && ci/unit-test-app.sh
